@@ -1,10 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.auth import get_current_user
 from app.core.database import get_db
-from app.core.security import hash_password
 from app.models.user import User
-from app.schemas.user import UserCreate
+from app.schemas.user import (
+    UserCreate,
+    UserUpdate,
+    UserResponse
+)
+from app.core.security import hash_password
 
 router = APIRouter()
 
@@ -22,14 +27,16 @@ def create_user(
 
     if existing_user:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
+            status_code=409,
             detail="Email already registered"
         )
 
     new_user = User(
         name=user.name,
         email=user.email,
-        hashed_password=hash_password(user.password)
+        hashed_password=hash_password(
+            user.password
+        )
     )
 
     db.add(new_user)
@@ -38,91 +45,63 @@ def create_user(
 
     return {
         "message": "User created successfully",
-        "user": {
-            "id": new_user.id,
-            "name": new_user.name,
-            "email": new_user.email
-        }
+        "user": new_user
     }
 
 
-@router.get("/users")
+@router.get(
+    "/users",
+    response_model=list[UserResponse]
+)
 def get_users(
     db: Session = Depends(get_db)
 ):
     return db.query(User).all()
 
 
-@router.put("/users/{user_id}")
-def update_user(
-    user_id: int,
-    user: UserCreate,
-    db: Session = Depends(get_db)
+@router.get(
+    "/users/me",
+    response_model=UserResponse
+)
+def get_my_profile(
+    current_user: User = Depends(
+        get_current_user
+    )
 ):
-    existing_user = (
-        db.query(User)
-        .filter(User.id == user_id)
-        .first()
+    return current_user
+
+
+@router.put(
+    "/users/me",
+    response_model=UserResponse
+)
+def update_my_profile(
+    user_data: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        get_current_user
     )
-
-    if not existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
-
-    duplicate_email = (
-        db.query(User)
-        .filter(
-            User.email == user.email,
-            User.id != user_id
-        )
-        .first()
-    )
-
-    if duplicate_email:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Email already registered"
-        )
-
-    existing_user.name = user.name
-    existing_user.email = user.email
-    existing_user.hashed_password = hash_password(user.password)
+):
+    current_user.name = user_data.name
+    current_user.email = user_data.email
 
     db.commit()
-    db.refresh(existing_user)
+    db.refresh(current_user)
 
-    return {
-        "message": "User updated successfully",
-        "user": {
-            "id": existing_user.id,
-            "name": existing_user.name,
-            "email": existing_user.email
-        }
-    }
+    return current_user
 
 
-@router.delete("/users/{user_id}")
-def delete_user(
-    user_id: int,
-    db: Session = Depends(get_db)
-):
-    existing_user = (
-        db.query(User)
-        .filter(User.id == user_id)
-        .first()
+@router.delete("/users/me")
+def delete_my_profile(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        get_current_user
     )
-
-    if not existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
-
-    db.delete(existing_user)
+):
+    db.delete(current_user)
     db.commit()
 
     return {
-        "message": "User deleted successfully"
+        "message":
+        "User deleted successfully"
     }
