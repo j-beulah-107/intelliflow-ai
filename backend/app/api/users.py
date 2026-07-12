@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.security import hash_password
 from app.models.user import User
 from app.schemas.user import UserCreate
 
@@ -13,9 +14,11 @@ def create_user(
     user: UserCreate,
     db: Session = Depends(get_db)
 ):
-    existing_user = db.query(User).filter(
-        User.email == user.email
-    ).first()
+    existing_user = (
+        db.query(User)
+        .filter(User.email == user.email)
+        .first()
+    )
 
     if existing_user:
         raise HTTPException(
@@ -25,7 +28,8 @@ def create_user(
 
     new_user = User(
         name=user.name,
-        email=user.email
+        email=user.email,
+        hashed_password=hash_password(user.password)
     )
 
     db.add(new_user)
@@ -55,25 +59,47 @@ def update_user(
     user: UserCreate,
     db: Session = Depends(get_db)
 ):
-    existing_user = db.query(User).filter(
-        User.id == user_id
-    ).first()
+    existing_user = (
+        db.query(User)
+        .filter(User.id == user_id)
+        .first()
+    )
 
     if not existing_user:
         raise HTTPException(
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
+        )
+
+    duplicate_email = (
+        db.query(User)
+        .filter(
+            User.email == user.email,
+            User.id != user_id
+        )
+        .first()
+    )
+
+    if duplicate_email:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Email already registered"
         )
 
     existing_user.name = user.name
     existing_user.email = user.email
+    existing_user.hashed_password = hash_password(user.password)
 
     db.commit()
     db.refresh(existing_user)
 
     return {
         "message": "User updated successfully",
-        "user": existing_user
+        "user": {
+            "id": existing_user.id,
+            "name": existing_user.name,
+            "email": existing_user.email
+        }
     }
 
 
@@ -82,13 +108,15 @@ def delete_user(
     user_id: int,
     db: Session = Depends(get_db)
 ):
-    existing_user = db.query(User).filter(
-        User.id == user_id
-    ).first()
+    existing_user = (
+        db.query(User)
+        .filter(User.id == user_id)
+        .first()
+    )
 
     if not existing_user:
         raise HTTPException(
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
 
