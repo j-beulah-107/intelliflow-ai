@@ -7,3 +7,4 @@ node_modules/
 dist/
 .vscode/settings.json
 backend/uploads/*
+backend/generated_charts/*

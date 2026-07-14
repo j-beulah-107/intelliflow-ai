@@ -12,6 +12,7 @@ from app.services.file_processor import (
     summarize_csv,
     summarize_text,
 )
+from app.services.report_generator import generate_csv_report
 
 router = APIRouter(
     prefix="/analysis",
@@ -77,11 +78,16 @@ def analyze_file(
             str(file_path)
         )
 
+        report = generate_csv_report(
+            csv_summary
+        )
+
         return {
             "file_id": uploaded_file.id,
             "original_name": uploaded_file.original_name,
             "type": "csv",
             "summary": csv_summary,
+            "report": report,
         }
 
     if extension in {".png", ".jpg", ".jpeg"}:
@@ -89,7 +95,7 @@ def analyze_file(
             "file_id": uploaded_file.id,
             "original_name": uploaded_file.original_name,
             "type": "image",
-            "message": "Image analysis will be added in the next milestone",
+            "message": "Image analysis will be added later",
         }
 
     raise HTTPException(
