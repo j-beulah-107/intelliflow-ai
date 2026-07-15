@@ -1,40 +1,17 @@
-# IntelliFlow AI
+Current Features
 
-## Overview
+User authentication
+Upload PDF, CSV and images
+File management
+Dataset cleaning
+Automatic analysis
+Data visualisation
+Dashboard analytics
+File history
 
-IntelliFlow AI is a production-ready AI SaaS platform that allows users to:
+Planned Features
 
-- Upload PDF documents
-- Upload CSV datasets
-- Upload images
-- Chat with uploaded documents
-- Automatically clean datasets
-- Generate visualizations
-- Train machine learning models
-- Explain AI predictions
-- Generate AI-powered reports
-- View user history and analytics
-
-## Technology Stack
-
-### Frontend
-- React
-- TypeScript
-- Vite
-
-### Backend
-- FastAPI
-- Python
-
-### Database
-- PostgreSQL
-
-### Machine Learning
-- Pandas
-- NumPy
-- Scikit-learn
-
-### Deployment
-- Docker
-- GitHub
-- Render/Railway
+Chat with documents
+AI reports
+Explainable AI module
+ML model training
