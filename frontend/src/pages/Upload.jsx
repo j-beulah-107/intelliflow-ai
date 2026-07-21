@@ -1,24 +1,37 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import Navbar from "../components/Navbar";
 
 function Upload() {
   const navigate = useNavigate();
 
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [uploadedFile, setUploadedFile] = useState(null);
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [selectedFile, setSelectedFile] =
+    useState(null);
+
+  const [uploadedFile, setUploadedFile] =
+    useState(null);
+
+  const [message, setMessage] =
+    useState("");
+
+  const [loading, setLoading] =
+    useState(false);
 
   const handleUpload = async (event) => {
     event.preventDefault();
 
     if (!selectedFile) {
-      setMessage("Please select a file.");
+      setMessage(
+        "Please select a file."
+      );
       return;
     }
 
-    const token = localStorage.getItem("access_token");
+    const token =
+      localStorage.getItem(
+        "access_token"
+      );
 
     if (!token) {
       navigate("/");
@@ -30,30 +43,40 @@ function Upload() {
     setUploadedFile(null);
 
     try {
-      const formData = new FormData();
-      formData.append("file", selectedFile);
+      const formData =
+        new FormData();
 
-      const response = await axios.post(
-        "http://127.0.0.1:8000/files/upload",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      formData.append(
+        "file",
+        selectedFile
       );
 
-      const savedFile = response.data.file;
+      const response =
+        await axios.post(
+          "http://127.0.0.1:8000/files/upload",
+          formData,
+          {
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+            },
+          }
+        );
 
-      if (!savedFile || !savedFile.id) {
-        throw new Error("File ID was not returned by the backend.");
-      }
+      const savedFile =
+        response.data.file;
 
-      setUploadedFile(savedFile);
-      setMessage("File uploaded successfully.");
+      setUploadedFile(
+        savedFile
+      );
+
+      setMessage(
+        "File uploaded successfully."
+      );
     } catch (error) {
       setMessage(
-        error.response?.data?.detail ||
+        error.response?.data
+          ?.detail ||
           error.message ||
           "Upload failed."
       );
@@ -64,20 +87,22 @@ function Upload() {
 
   const handleAnalyse = () => {
     if (!uploadedFile?.id) {
-      setMessage("Uploaded file ID is missing.");
       return;
     }
 
-    navigate(`/analysis?fileId=${uploadedFile.id}`);
+    navigate(
+      `/analysis?fileId=${uploadedFile.id}`
+    );
   };
 
   const handleCharts = () => {
     if (!uploadedFile?.id) {
-      setMessage("Uploaded file ID is missing.");
       return;
     }
 
-    navigate(`/charts?fileId=${uploadedFile.id}`);
+    navigate(
+      `/charts?fileId=${uploadedFile.id}`
+    );
   };
 
   const isCsv =
@@ -86,92 +111,136 @@ function Upload() {
       .endsWith(".csv");
 
   return (
-    <main className="dashboard-page">
-      <header className="page-header">
-        <div>
-          <div className="brand">IntelliFlow AI</div>
-          <h1>Upload a file</h1>
-          <p>
-            Upload a PDF, CSV, PNG, JPG, or JPEG file.
-          </p>
-        </div>
+    <>
+      <Navbar />
 
-        <Link
-          className="secondary-button"
-          to="/dashboard"
-        >
-          Back to dashboard
-        </Link>
-      </header>
+      <main className="dashboard-page">
+        <header className="page-header">
+          <div>
+            <h1>
+              Upload a file
+            </h1>
 
-      <section className="content-card">
-        <form
-          className="upload-form"
-          onSubmit={handleUpload}
-        >
-          <label>
-            Choose file
-            <input
-              type="file"
-              accept=".pdf,.csv,.png,.jpg,.jpeg"
-              onChange={(event) => {
-                const file =
-                  event.target.files?.[0] || null;
+            <p>
+              Upload a PDF,
+              CSV, PNG, JPG,
+              or JPEG file.
+            </p>
+          </div>
 
-                setSelectedFile(file);
-                setUploadedFile(null);
-                setMessage("");
-              }}
-            />
-          </label>
-
-          <button
-            type="submit"
-            disabled={loading}
+          <Link
+            className="secondary-button"
+            to="/dashboard"
           >
-            {loading
-              ? "Uploading..."
-              : "Upload file"}
-          </button>
-        </form>
+            Back to dashboard
+          </Link>
+        </header>
 
-        {message && <p>{message}</p>}
+        <section className="content-card">
+          <form
+            className="upload-form"
+            onSubmit={
+              handleUpload
+            }
+          >
+            <label>
+              Choose file
 
-        {uploadedFile && (
-          <div className="upload-result">
-            <h2>Upload completed</h2>
+              <input
+                type="file"
+                accept=".pdf,.csv,.png,.jpg,.jpeg"
+                onChange={(
+                  event
+                ) => {
+                  const file =
+                    event
+                      .target
+                      .files?.[0] ||
+                    null;
 
+                  setSelectedFile(
+                    file
+                  );
+
+                  setUploadedFile(
+                    null
+                  );
+
+                  setMessage(
+                    ""
+                  );
+                }}
+              />
+            </label>
+
+            <button
+              type="submit"
+              disabled={
+                loading
+              }
+            >
+              {loading
+                ? "Uploading..."
+                : "Upload file"}
+            </button>
+          </form>
+
+          {message && (
             <p>
-              <strong>File:</strong>{" "}
-              {uploadedFile.original_name}
+              {message}
             </p>
+          )}
 
-            <p>
-              <strong>File ID:</strong>{" "}
-              {uploadedFile.id}
-            </p>
+          {uploadedFile && (
+            <div className="upload-result">
+              <h2>
+                Upload completed
+              </h2>
 
-            <div className="upload-actions">
-              <button
-                type="button"
-                onClick={handleAnalyse}
-              >
-                Analyse file
-              </button>
+              <p>
+                <strong>
+                  File:
+                </strong>{" "}
+                {
+                  uploadedFile.original_name
+                }
+              </p>
 
-              {isCsv && (
+              <p>
+                <strong>
+                  File ID:
+                </strong>{" "}
+                {
+                  uploadedFile.id
+                }
+              </p>
+
+              <div className="upload-actions">
                 <button
                   type="button"
-                  onClick={handleCharts}
+                  onClick={
+                    handleAnalyse
+                  }
                 >
-                  Generate charts
+                  Analyse file
                 </button>
-              )}
+
+                {isCsv && (
+                  <button
+                    type="button"
+                    onClick={
+                      handleCharts
+                    }
+                  >
+                    Generate charts
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        )}
-      </section>
-    </main>
+          )}
+        </section>
+      </main>
+    </>
   );
 }
 

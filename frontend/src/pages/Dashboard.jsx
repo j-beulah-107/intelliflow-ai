@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import Navbar from "../components/Navbar";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -53,77 +54,73 @@ function Dashboard() {
     fetchStats();
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    navigate("/");
-  };
-
   return (
-    <main className="dashboard-page">
-      <header className="dashboard-header">
-        <div>
-          <div className="brand">IntelliFlow AI</div>
-          <h1>Dashboard</h1>
-          <p>Manage and analyse your uploaded files.</p>
-        </div>
+    <>
+      <Navbar />
 
-        <button
-          className="secondary-button"
-          onClick={handleLogout}
-        >
-          Log out
-        </button>
-      </header>
+      <main className="dashboard-page">
+        <header className="dashboard-header">
+          <div>
+            <h1>Dashboard</h1>
+            <p>Manage and analyse your uploaded files.</p>
+          </div>
+        </header>
 
-      {loading && <p>Loading dashboard...</p>}
+        {loading && <p>Loading dashboard...</p>}
 
-      {message && (
-        <p className="error-message">{message}</p>
-      )}
+        {message && (
+          <p className="error-message">{message}</p>
+        )}
 
-      {!loading && !message && (
-        <>
-          <section className="stats-grid">
-            <article className="stat-card">
-              <span>Total files</span>
-              <strong>{stats.total_files}</strong>
-            </article>
+        {!loading && !message && (
+          <>
+            <section className="stats-grid">
+              <article className="stat-card">
+                <span>Total files</span>
+                <strong>{stats.total_files}</strong>
+              </article>
 
-            <article className="stat-card">
-              <span>PDF files</span>
-              <strong>{stats.pdf_files}</strong>
-            </article>
+              <article className="stat-card">
+                <span>PDF files</span>
+                <strong>{stats.pdf_files}</strong>
+              </article>
 
-            <article className="stat-card">
-              <span>CSV files</span>
-              <strong>{stats.csv_files}</strong>
-            </article>
+              <article className="stat-card">
+                <span>CSV files</span>
+                <strong>{stats.csv_files}</strong>
+              </article>
 
-            <article className="stat-card">
-              <span>Images</span>
-              <strong>{stats.image_files}</strong>
-            </article>
-          </section>
+              <article className="stat-card">
+                <span>Images</span>
+                <strong>{stats.image_files}</strong>
+              </article>
+            </section>
 
-          <section className="action-grid">
-            <Link className="action-card" to="/upload">
-              <h2>Upload a file</h2>
-              <p>Add a PDF, CSV, or image for analysis.</p>
-            </Link>
+            <section className="action-grid">
+              <Link className="action-card" to="/upload">
+                <h2>Upload a file</h2>
+                <p>Add a PDF, CSV, or image for analysis.</p>
+              </Link>
 
-            <Link className="action-card" to="/analysis">
-              <h2>Analyse a file</h2>
-              <p>View summaries and dataset insights.</p>
-            </Link>
+              <Link className="action-card" to="/analysis">
+                <h2>Analyse a file</h2>
+                <p>View summaries and dataset insights.</p>
+              </Link>
 
-            <Link className="action-card" to="/charts">
-              <h2>View charts</h2>
-              <p>Generate visualisations from CSV files.</p>
-            </Link>
-          </section>
-        </>
-      )}
-    </main>
+              <Link className="action-card" to="/files">
+                <h2>My Files</h2>
+                <p>View and manage all uploaded files.</p>
+              </Link>
+
+              <Link className="action-card" to="/charts">
+                <h2>View charts</h2>
+                <p>Generate visualisations from CSV files.</p>
+              </Link>
+            </section>
+          </>
+        )}
+      </main>
+    </>
   );
 }
 
